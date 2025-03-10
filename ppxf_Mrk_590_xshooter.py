@@ -82,20 +82,21 @@ lam8 /= (1 + z)
 overlap_uv = 5585/(1+z)
 overlap_nir = 10240/(1+z) 
 
-
 ################################
+# Change fitting windows here
 ################################
 ca_trip = (lam >= 8000) & (lam <= 9000) 
 uv_vis = (lam >= 3800) & (lam <= 9000) 
 agn = lam <= 4000
+
 nir = lam >= 9000
 ################################
 ################################
 
 #### SCALE VIS SPECTRUM
 #visual inspection loss of light roughly 10% 
-adjust = np.ones_like(spec)
-adjust[vis]*=1.1
+#adjust = np.ones_like(spec)
+#adjust[vis]*=1.1
 #spec *= adjust
 #spec8 *= adjust
 ################
@@ -165,6 +166,11 @@ def ppxf_fit_and_clean(templates, galaxy, noise, velscale, start,
     
     pp.optimal_template = templates.reshape(templates.shape[0], -1) @ pp.weights
     
+    temp_spec = util.convolve_gauss_hermite(pp.templates_full, velscale, pp.sol, pp.optimal_template.size)
+    pp.convolve_gauss_temps = (temp_spec @ pp.weights)
+    #if pp.mpoly is not None: pp.convolve_gauss_temps *= pp.mpoly #WRONG SHAPE NEED TO RECALULATE THE POLYS OVER LARGER SPAN
+    #if pp.apoly is not None: pp.convolve_gauss_temps += pp.apoly
+    
     resid = (pp.galaxy - pp.bestfit)[pp.goodpixels]
     pp.sn = np.nanmedian(pp.galaxy[pp.goodpixels])/robust_sigma(resid)
 
@@ -231,7 +237,8 @@ def show_sps(title, self, lib, lib_name):
     ax2 = plt.subplot(312)
     plt.axvspan(self.lam[0], self.lam[-1], facecolor = 'lightgrey', alpha=0.5, label='Data range') # data range
     if self.goodpixels[0]>=2000: plt.axvspan(3020, 4000, facecolor = 'darkgrey', label='UV data not included in fit')
-    plt.plot(self.lam_optimal_template, self.optimal_template, label='Combined pPXF Model \n(Sum of Weighted Templates)', color='black', linewidth=1)
+    plt.plot(self.lam_optimal_template, self.convolve_gauss_temps, label='SPS models convolved with \nLOSVD using Gauss-Hermite series', color='black', linewidth=1)
+    plt.plot(self.lam_optimal_template, self.optimal_template, label='Combined pPXF Model \n(Sum of Weighted Templates)', color='green', linewidth=1)
     plt.xlim(1600,13000)
     plt.xticks([])
     plt.legend()
@@ -292,21 +299,21 @@ def save_as_ascii(date, self, lib, idx):
         weights_str += "".join([f"SPS [{idx[i]}]: {self.weights[idx[i]]:22.16e}\n" for i in range(len(idx))]) + "\n"
         f.write(weights_str)
         
-        header = f"temp_lam_AA   optimal_model           lib_lam      "
+        header = f"temp_lam_AA   optimal_model           bestfit_full           lib_lam      "
         header += "   ".join([f"SPS [{idx[i]}]             " for i in range(len(idx))]) + " \n"
         f.write(header)
-        f.write("------------  ----------------------  -----------  " + "----------------------  "*len(idx) +"\n")
+        f.write("------------  ----------------------  ----------------------  -----------  " + "----------------------  "*len(idx) +"\n")
     
         # Write the data in the specified format
-        for wl, optemp, lam, *sps_values in zip(self.lam_optimal_template, self.optimal_template, lib.lam_temp_full, *[lib.templates_reshape[:, i] for i in idx]):
+        for wl, optemp, bestfull, lam, *sps_values in zip(self.lam_optimal_template, self.optimal_template, self.convolve_gauss_temps,  lib.lam_temp_full, *[lib.templates_reshape[:, i] for i in idx]):
             # Join SPS values dynamically based on the length of idx
             sps_values_str = "  ".join([f"{sps:22.16e}" for sps in sps_values])
-            f.write(f"{wl:12.2f}  {optemp:22.16e} {lam:12.2f}  {sps_values_str}\n")
+            f.write(f"{wl:12.2f}  {optemp:22.16e}  {bestfull:22.16e} {lam:12.2f}  {sps_values_str}\n")
     print(f"Saved at output/{date}_ppxf_templates_ascii.txt\n")
     
     
 ################################################################ 
-def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_range=[7500, 8400], AGNmask=True, plot=True, quiet=False, save=False):
+def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_range=[7000, 8700], AGNmask=True, plot=True, quiet=False, save=False):
     """
     Performs two pPXF fits of the galaxy spectrum using stellar population synthesis (SPS) templates.
 
@@ -355,8 +362,8 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     sigma_inst = c/(R*np.sqrt(4*np.log(4))) 
     if not quiet: print( f"Instrumental dispersion: {sigma_inst:.0f} km/s\n") 
     
-    noise, ln_lam, velscale  = util.log_rebin([min(llam),max(llam)], nnoise, velscale=sigma_inst)
-    galaxy, ln_lam, velscale  = util.log_rebin([min(llam),max(llam)], ggalaxy, velscale=sigma_inst)
+    noise, ln_lam, velscale  = util.log_rebin(lam_range, nnoise, velscale=sigma_inst)
+    galaxy, ln_lam, velscale  = util.log_rebin(lam_range, ggalaxy, velscale=sigma_inst)
     
     #galaxy /= np.median(galaxy)  # Normalize spectrum to avoid numerical issues
     #noise = np.full_like(galaxy, 0.01) # Use if you want to assume constant noise per pixel; S=1, N=0.01 --> S/N = 100
@@ -376,11 +383,11 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     lam_range_temp = np.exp(libs.ln_lam_temp[[0, -1]])
 
     ################################ Setup emission line masks width in km/s
-    mask_Narrow  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=700, custom_lines=em__wavelengths)                 # Emission lines marked from plot_Mrk_590_Xshooter
-    mask_Balmer  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=1100, custom_lines=balmer_wave)                    # Balmer emission lines
+    mask_Narrow  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=700, custom_lines= em__wavelengths)                # Emission lines marked from plot_Mrk_590_Xshooter
+    mask_Balmer  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=1100, custom_lines= balmer_wave)                   # Balmer emission lines
     mask_Broad   = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=9200, custom_lines=[6548.03, 6583.41, 6562.80])    # [NII]_d & Halpha
-    mask_Bbroad  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=6000, custom_lines=[4861.33,  4958.911,  5006.84]) # Hbeta & [OIII]
-    mask_Bbbroad = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=3000, custom_lines=[4340.471, 4363.21,  7319.99])  # Hγ & [O III] & [O II]
+    mask_Bbroad  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=6000, custom_lines=[4861.33,  4958.911, 5006.84])  # Hbeta & [OIII]
+    mask_Bbbroad = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=3000, custom_lines=[4340.471, 4363.21, 7319.99])   # Hγ & [O III] & [O II]
     mask_Noise   = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=2000, custom_lines=[7440])                         # Noise near Ca_II trip
     mask_overlap = ~((np.exp(ln_lam) >= (overlap_uv-80)) & (np.exp(ln_lam) <= (overlap_uv+20)))              # Overlap between UV and VIS data see Table 11, XSHOOTER User Manual v. 8 Released On: 2021-06-18
     ################
@@ -395,7 +402,7 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     
     pp = ppxf_fit_and_clean(libs.templates, galaxy, noise, velscale, start, mask_combined, np.exp(ln_lam), lam_temp=libs.lam_temp, apol=degree, mpol=mdegree, plot=plot, quiet=quiet)
     if plot: 
-        #plt.title(f"pPXF fit with {sps_name} SPS templates") 
+        plt.title(f"pPXF fit with {sps_name} SPS templates") 
         if AGNmask: plt.axvspan(3000, 4000, facecolor = 'lightcoral', alpha=0.5, label='UV data not included in fit') # Overlap between UV and VIS data
         plt.axvspan(overlap_uv-80, overlap_uv+20, facecolor = 'cyan', alpha=0.5) # Overlap between UV and VIS data
         plt.axvline(overlap_uv, color = 'aqua') 
@@ -422,18 +429,15 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     
 ################################################################
 
-'''
+
 print('#'*64 + '\n' + '#'*32 + f'                      27/01/2022\n' +'#'*64)
-pp, sps_name, sps, velscale, mask_combined = runppxf('27_01_2022', lam[~nir], spec[~nir], err[~nir], 
-                                                     degree=-1, mdegree=-1, sps_name = 'emiles', R=R[1], AGNmask=True, plot=False, save=True)
+pp, sps_name, sps, velscale, mask_combined = runppxf('27_01_2022', lam[~nir], spec[~nir], err[~nir], degree=-1, mdegree=-1, sps_name = 'emiles', R=R[1], AGNmask=True, plot=False, save=True)
 idx, n, nn = show_sps('27 Jan. X-shooter Mrk590', pp, sps, sps_name)
 plt.savefig(f'output/27_01_22_Mrk590_Xshooter_ppxf.pdf', format='pdf')
 save_as_ascii('27_01_2022', pp, sps, idx)
 
 print('#'*64 + '\n' + '#'*32 + f'                      08/01/2022\n' +'#'*64)
-pp8, sps_name8, sps8, velscale8, mask_combined8 = runppxf('08_01_2022', lam8[~nir], spec8[~nir], err8[~nir],
-                                                          degree=-1, mdegree=-1, sps_name = 'emiles', R=R[1], AGNmask=True, plot=False, save=True)
+pp8, sps_name8, sps8, velscale8, mask_combined8 = runppxf('08_01_2022', lam8[~nir], spec8[~nir], err8[~nir], degree=-1, mdegree=-1, sps_name = 'emiles', R=R[1], AGNmask=True, plot=False, save=True)
 idx8, n8, nn8 = show_sps('08 Jan. X-shooter Mrk590', pp8, sps8, sps_name8)
 plt.savefig(f'output/08_01_22_Mrk590_Xshooter_ppxf.pdf', format='pdf')
 save_as_ascii('08_01_2022', pp8, sps8, idx8)
-'''
