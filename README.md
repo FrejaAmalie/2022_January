@@ -29,6 +29,21 @@ Key Parameters:
 
 **Note:** The output is not saved to an output log; instead, it is printed to the terminal. Make sure to save the output manually if needed.   
 
+############################################
+
+### Stellar Population Synthesis (SPS) templates 
+
+############################################
+
+**Needs to be installed in ppxf/sps_models/** since ppxf is not distributing the templates anymore. The SPS model files are available here: [[micappe/ppxf_data](https://github.com/micappe/ppxf_data)].
+
+I have Used the Emiles SPS library for my fitting: 
+The [E-MILES](http://miles.iac.es/) SPS model templates by [Vazdekis et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016MNRAS.463.3409V) with Padova isochrones and Salpeter IMF.
+
+http://research.iac.es/proyecto/miles/pages/webtools/tune-ssp-models.php
+
+As mentioned, four libraries are formated for PPXF. However, it's also possible to use other libraries, provided they are packaged correctly as NPZ files.
+
 ################################################################
 
 ### Mrk 590 from XSHOOTER observations under Program ID 108.229T.001
@@ -62,18 +77,3 @@ As a general rule,
 
 See: https://en.wikipedia.org/wiki/Reduced_chi-squared_statistic
 
-############################################
-
-### Stellar Population Synthesis (SPS) templates 
-
-############################################
-
-Needs to be insalled in ppxf/sps_models/ since ppxf is not distributing the templates anymore. The SPS model files are available this [[GitHub page](https://github.com/micappe/ppxf_data)].
-
-
-I have Used the Emiles SPS library for my fitting: 
-The [E-MILES](http://miles.iac.es/) SPS model templates by [Vazdekis et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016MNRAS.463.3409V) with Padova isochrones and Salpeter IMF.
-
-http://research.iac.es/proyecto/miles/pages/webtools/tune-ssp-models.php
-
-As mentioned, four libraries are distributed with PPXF (or available here: [[micappe/ppxf_data](https://github.com/micappe/ppxf_data)]). However, it's also possible to use other libraries, provided they are packaged correctly as NPZ files
