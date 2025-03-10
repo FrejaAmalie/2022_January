@@ -1,8 +1,4 @@
-################################################################
-
-pPXF for Xshooter data of Mrk 590
-
-################################################################
+# pPXF for Xshooter data of Mrk 590
 
 Author: Freja Amalie Nørby
 
@@ -35,7 +31,7 @@ Key Parameters:
 
 ################################################################
 
-Mrk 590 from XSHOOTER observations under Program ID 108.229T.001
+### Mrk 590 from XSHOOTER observations under Program ID 108.229T.001
 
 ################################################################
                Airmass    seeing  
@@ -50,7 +46,7 @@ From archive.eso.org/hdr?DpId=XSHOO.2022-01-27T01:00:32.145
 
 ################################
 
-chi2/DOF:    Reduced chi-squared 
+### chi2/DOF:    Reduced chi-squared 
 
 ################################
 
@@ -67,7 +63,7 @@ See: https://en.wikipedia.org/wiki/Reduced_chi-squared_statistic
 
 ############################################
 
-Stellar Population Synthesis (SPS) templates 
+### Stellar Population Synthesis (SPS) templates 
 
 ############################################
 
