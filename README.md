@@ -35,7 +35,7 @@ Key Parameters:
 
 ############################################
 
-**Needs to be installed in ppxf/sps_models/** since ppxf is not distributing the templates anymore. The SPS model files are available here: [[micappe/ppxf_data](https://github.com/micappe/ppxf_data)].
+**Needs to be installed in ppxf/sps_models/** since ppxf is not distributing the templates anymore. The SPS model files are available here: [micappe/ppxf_data](https://github.com/micappe/ppxf_data).
 
 I have Used the Emiles SPS library for my fitting: 
 The [E-MILES](http://miles.iac.es/) SPS model templates by [Vazdekis et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016MNRAS.463.3409V) with Padova isochrones and Salpeter IMF.
