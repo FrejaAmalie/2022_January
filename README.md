@@ -51,6 +51,7 @@ From archive.eso.org/hdr?DpId=XSHOO.2022-01-27T01:00:32.145
 ################################
 
 As a general rule, 
+
         χ^2 ≫ 1 indicates a poor model fit. 
         
         χ^2 > 1 indicates that the fit has not fully captured the data (or that the error variance has been underestimated)
