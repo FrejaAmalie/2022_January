@@ -20,6 +20,7 @@ Although I provide a modified version of ppxf, it doesn't include all the files.
 pp, sps_name, sps, velscale, mask_combined = runppxf('identifier', lam[range], spec[range], err[range], degree=-1, mdegree=-1, sps_name='emiles',R=R[1], AGNmask=True, plot=False, save=True)
 
 Key Parameters: 
+
     degree and mdegree are the same as in ppxf, representing the additive Legendre polynomial and multiplicative polynomial to add to the model. 
           A value of -1 means no contribution, and they follow standard polynomial conventions.
           
@@ -27,6 +28,7 @@ Key Parameters:
           (Note: only MILES and XSL have high resolution beyond 7500Å. For other libraries, restrict the fit to wavelengths beyond 7500Å.)
           
     save: If set to True, a pickle file will be saved. For saving as an ASCII file, use the save_as_ascii('27_01_2022', pp, sps, idx) function.
+    
     AGNmask=True: This option will mask the spectrum below 4000Å.
 
 **Note:** The output is not saved to an output log; instead, it is printed to the terminal. Make sure to save the output manually if needed.   
@@ -54,8 +56,11 @@ chi2/DOF:    Reduced chi-squared
 
 As a general rule, 
         χ^2 ≫ 1 indicates a poor model fit. 
+        
         χ^2 > 1 indicates that the fit has not fully captured the data (or that the error variance has been underestimated)
+        
         χ^2 around 1  indicates that the extent of the match between observations and estimates is in accord with the error variance. 
+        
         χ^2 < 1 indicates that the model is "overfitting" the data: either the model is improperly fitting noise, or the error variance has been overestimated
 
 See: https://en.wikipedia.org/wiki/Reduced_chi-squared_statistic
