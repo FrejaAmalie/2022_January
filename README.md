@@ -3,9 +3,11 @@
 pPXF for Xshooter data of Mrk 590
 
 ################################################################
+
 Author: Freja Amalie Nørby
 Email: freja.noerby@nbi.ku.dk
 Date: 08. March 2025
+
 ################################################################
 
 The 0__config.py file ensures that all necessary packages are installed, automatically handling the installation of any missing dependencies. 
@@ -26,7 +28,9 @@ Key Parameters:
 **Note:** The output is not saved to an output log; instead, it is printed to the terminal. Make sure to save the output manually if needed.   
 
 ################################################################
+
 Mrk 590 from XSHOOTER observations under Program ID 108.229T.001
+
 ################################################################
                Airmass    seeing  
 08/01/2022      1.208	   0.51
@@ -39,8 +43,11 @@ NIR slit width = 0.9 , 	R=(λ/Δλ) = 5600, sampling = 3.7 (3.6)
 From archive.eso.org/hdr?DpId=XSHOO.2022-01-27T01:00:32.145
 
 ################################
+
 chi2/DOF:    Reduced chi-squared 
+
 ################################
+
 As a general rule, 
         χ^2 ≫ 1 indicates a poor model fit. 
         χ^2 > 1 indicates that the fit has not fully captured the data (or that the error variance has been underestimated)
@@ -50,9 +57,14 @@ As a general rule,
 See: https://en.wikipedia.org/wiki/Reduced_chi-squared_statistic
 
 ############################################
+
 Stellar Population Synthesis (SPS) templates 
+
 ############################################
+
 I have Used the Emiles SPS library for my fitting: 
 The [E-MILES](http://miles.iac.es/) SPS model templates by [Vazdekis et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016MNRAS.463.3409V) with Padova isochrones and Salpeter IMF.
 
 http://research.iac.es/proyecto/miles/pages/webtools/tune-ssp-models.php
+
+As mentioned, four libraries are distributed with PPXF (or available here: [[micappe/ppxf_data](https://github.com/micappe/ppxf_data)]). However, it's also possible to use other libraries, provided they are packaged correctly as NPZ files
