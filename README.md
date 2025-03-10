@@ -17,7 +17,7 @@ Although I provide a modified version of ppxf, it doesn't include all the files.
 
 **To run the fitting procedure** execute the ppxf_Mrk_590_xshooter.py script and either uncomment my preset function call or use the following:
 
-pp, sps_name, sps, velscale, mask_combined = runppxf('identifier', lam[range], spec[range], err[range], degree=-1, mdegree=-1, sps_name='emiles',R=R[1], AGNmask=True, plot=False, save=True)
+> pp, sps_name, sps, velscale, mask_combined = runppxf('identifier', lam[range], spec[range], err[range], degree=-1, mdegree=-1, sps_name='emiles',R=R[1], AGNmask=True, plot=False, save=True)
 
 Key Parameters: 
 
