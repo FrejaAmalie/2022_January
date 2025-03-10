@@ -30,10 +30,6 @@ from astropy.units import Unit
 from ppxf.ppxf import ppxf, robust_sigma
 import ppxf.ppxf_util as util
 import ppxf.sps_util as lib
-from vorbin.voronoi_2d_binning import voronoi_2d_binning
-from plotbin.display_bins import display_bins
-from plotbin.display_pixels import display_pixels
-from plotbin.plot_velfield import plot_velfield
 
 import pickle
 import warnings
@@ -86,11 +82,15 @@ lam8 /= (1 + z)
 overlap_uv = 5585/(1+z)
 overlap_nir = 10240/(1+z) 
 
+
+################################
+################################
 ca_trip = (lam >= 8000) & (lam <= 9000) 
 uv_vis = (lam >= 3800) & (lam <= 9000) 
-agn = lam <= 3900
-
+agn = lam <= 4000
 nir = lam >= 9000
+################################
+################################
 
 #### SCALE VIS SPECTRUM
 #visual inspection loss of light roughly 10% 
@@ -178,6 +178,30 @@ def ppxf_fit_and_clean(templates, galaxy, noise, velscale, start,
 ################################################################
 ### Function to show the SPS model and templates ###############
 def show_sps(title, self, lib, lib_name):
+    """
+    Visualizes the results of a stellar population synthesis (SPS) analysis.
+    
+    This function generates three subplots: 
+    1. The plot produced by the ppxf fitting.
+    2. The optimal pPXF model (combined sum of weighted templates), 
+    with optional inset plots for the "Apoly" and "Mpoly" components.
+    3. Individual stellar templates with offsets, displaying the 
+    stellar parameters (age and metallicity) for each template.
+    
+    Parameters:
+        - title (str): The title for the plot.
+        - self: The object containing the data and fitting results
+        (e.g., the pPXF fit object, pp).
+        - lib: The library containing the spectral templates.
+        - lib_name (str): The name of the template library.
+    
+    Returns:
+        - idx (list): Indices of the selected templates.
+        - n (list): Age grid indices corresponding to each 
+        selected template.
+        - nn (list): Metallicity grid indices corresponding
+        to each selected template.
+    """
     print('#'*32 + f' SPS templates: {lib_name}')
     plt.figure(figsize=(14,10))
         
@@ -341,6 +365,10 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     ppxf_dir = Path('ppxf') # path.dirname(path.realpath(lib.__file__))
     basename = f"spectra_{sps_name}_9.0.npz"
     filename = ppxf_dir / 'sps_models' / basename
+    
+    if not filename.is_file():
+        url = "https://raw.githubusercontent.com/micappe/ppxf_data/main/" + basename
+        request.urlretrieve(url, filename)
     #FWHM_temp = 2.51   # Resolution of E-MILES templates in the fitted range
 
     libs = lib.sps_lib(filename, velscale, norm_range= norm_range)
@@ -393,6 +421,8 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     return pp, sps_name, sps, velscale, mask_combined
     
 ################################################################
+
+'''
 print('#'*64 + '\n' + '#'*32 + f'                      27/01/2022\n' +'#'*64)
 pp, sps_name, sps, velscale, mask_combined = runppxf('27_01_2022', lam[~nir], spec[~nir], err[~nir], 
                                                      degree=-1, mdegree=-1, sps_name = 'emiles', R=R[1], AGNmask=True, plot=False, save=True)
@@ -406,4 +436,4 @@ pp8, sps_name8, sps8, velscale8, mask_combined8 = runppxf('08_01_2022', lam8[~ni
 idx8, n8, nn8 = show_sps('08 Jan. X-shooter Mrk590', pp8, sps8, sps_name8)
 plt.savefig(f'output/08_01_22_Mrk590_Xshooter_ppxf.pdf', format='pdf')
 save_as_ascii('08_01_2022', pp8, sps8, idx8)
-
+'''
