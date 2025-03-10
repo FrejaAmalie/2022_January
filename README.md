@@ -20,7 +20,7 @@ Key Parameters:
     degree and mdegree are the same as in ppxf, representing the additive Legendre polynomial and multiplicative polynomial to add to the model. 
           A value of -1 means no contribution, and they follow standard polynomial conventions.
           
-    sps_name: This refers to the name of the stellar population synthesis (SPS) library. Possible values are: 'fsps', 'galaxev', 'emiles', 'xsl'
+    sps_name: This refers to the name of the stellar population synthesis (SPS) library. Possible values are: 'fsps', 'galaxev', 'emiles', 'xsl' 
           (Note: only MILES and XSL have high resolution beyond 7500Å. For other libraries, restrict the fit to wavelengths beyond 7500Å.)
           
     save: If set to True, a pickle file will be saved. For saving as an ASCII file, use the save_as_ascii('27_01_2022', pp, sps, idx) function.
@@ -67,6 +67,9 @@ See: https://en.wikipedia.org/wiki/Reduced_chi-squared_statistic
 ### Stellar Population Synthesis (SPS) templates 
 
 ############################################
+
+Needs to be insalled in ppxf/sps_models/ since ppxf is not distributing the templates anymore. The SPS model files are available this [[GitHub page](https://github.com/micappe/ppxf_data)].
+
 
 I have Used the Emiles SPS library for my fitting: 
 The [E-MILES](http://miles.iac.es/) SPS model templates by [Vazdekis et al. (2016)](https://ui.adsabs.harvard.edu/abs/2016MNRAS.463.3409V) with Padova isochrones and Salpeter IMF.
