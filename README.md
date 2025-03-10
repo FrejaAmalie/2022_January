@@ -5,7 +5,9 @@ pPXF for Xshooter data of Mrk 590
 ################################################################
 
 Author: Freja Amalie Nørby
+
 Email: freja.noerby@nbi.ku.dk
+
 Date: 08. March 2025
 
 ################################################################
@@ -20,8 +22,10 @@ pp, sps_name, sps, velscale, mask_combined = runppxf('identifier', lam[range], s
 Key Parameters: 
     degree and mdegree are the same as in ppxf, representing the additive Legendre polynomial and multiplicative polynomial to add to the model. 
           A value of -1 means no contribution, and they follow standard polynomial conventions.
+          
     sps_name: This refers to the name of the stellar population synthesis (SPS) library. Possible values are: 'fsps', 'galaxev', 'emiles', 'xsl'
           (Note: only MILES and XSL have high resolution beyond 7500Å. For other libraries, restrict the fit to wavelengths beyond 7500Å.)
+          
     save: If set to True, a pickle file will be saved. For saving as an ASCII file, use the save_as_ascii('27_01_2022', pp, sps, idx) function.
     AGNmask=True: This option will mask the spectrum below 4000Å.
 
