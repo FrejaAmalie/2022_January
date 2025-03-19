@@ -37,8 +37,10 @@ warnings.simplefilter("ignore", category=RuntimeWarning)
 warnings.simplefilter("ignore", SyntaxWarning)
 
 ################################################################################################
+save_path = 'output/age_metal_restricted_model/'
+
 print('#'*64 + '\n' + f'ppxf for X-shooter Mrk590 (2022)             {
-datetime.now().strftime("%Y-%m-%d %H:%M:%S")} '+ '\n' + '#'*64 +'\n')
+datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'+ '\n' + '#'*64 +'\n')
 
 z = 0.02647065 # from ned ipac no 19 Ref.https://ned.ipac.caltech.edu/reflookup?refcode=2022ApJS..261....2K
 c = 299792.458  # speed of light in km/s
@@ -102,8 +104,8 @@ nir = lam >= 9000
 ################
 
 ################################################################
-em_line_names =            ['[Ne V]', '[Ne V]', '[OII]', '[Ne III]', '[S II]', '[O III]',  'He II',  'Hbeta',  '[OIII]',       '', '[N I]', '[Fe VII]', '[N II]',   'He I',  '[Fe VII]', '[OI]',   '[O I]',      '', '[NII]', 'Halpha', '[SII]',      '', '[O II]', '[S III]'] #'[Ar III]', '[Ni II]', '[Ni II]', 
-em__wavelengths = np.array([3345.821, 3425.881, 3728.82,   3868.760, 4068.600,   4363.21, 4685.710,  4861.33,  4958.911,  5006.84, 5200.257,  5720.700,  5754.59, 5875.624,    6087.000, 6300.30, 6363.776, 6548.05, 6583.46,  6562.82, 6716.47, 6732.67, 7319.990, 9531.100 ])#  7135.790,  7377.830,  7411.160, 
+em_line_names =            ['[Ne V]', '[Ne V]', '[OII]', '[Ne III]', '[S II]', '[O III]',  'He II',  'Hbeta',  '[OIII]',       '', '[N I]', '[Fe VII]', '[N II]',   'He I',  '[Fe VII]', '[OI]',   '[O I]',      '', '[NII]', 'Halpha', '[SII]',      '','[Ar III]', '[O II]', '[S III]'] #'[Ar III]', '[Ni II]', '[Ni II]', 
+em__wavelengths = np.array([3345.821, 3425.881, 3728.82,   3868.760, 4068.600,   4363.21, 4685.710,  4861.33,  4958.911,  5006.84, 5200.257,  5720.700,  5754.59, 5875.624,    6087.000, 6300.30, 6363.776, 6548.05, 6583.46,  6562.82, 6716.47, 6732.67,  7135.790, 7319.990, 9531.100 ])#  7135.790,  7377.830,  7411.160, 
 
 balmer_labels =           ['H10',     'H9',     'H8',     'Hε',     'Hδ', '    Hγ',     'Hβ', 'Halpha']
 balmer_wave = np.array([3797.904, 3835.391, 3889.064, 3970.079, 4101.742, 4340.471, 4861.333, 6562.819])
@@ -183,7 +185,7 @@ def ppxf_fit_and_clean(templates, galaxy, noise, velscale, start,
 
 ################################################################
 ### Function to show the SPS model and templates ###############
-def show_sps(title, self, lib, lib_name):
+def show_sps(title, self, lib, lib_name, see=None):
     """
     Visualizes the results of a stellar population synthesis (SPS) analysis.
     
@@ -207,12 +209,13 @@ def show_sps(title, self, lib, lib_name):
         selected template.
         - nn (list): Metallicity grid indices corresponding
         to each selected template.
+        
     """
     print('#'*32 + f' SPS templates: {lib_name}')
     plt.figure(figsize=(14,10))
         
     cmap=plt.get_cmap('jet', lib.templates_reshape.shape[1])
-    offset = np.array([7,6,5,4,3,2,1,0])*0.5
+    offset = np.array([4,2,1,0]) 
 
     idx = np.where(self.weights>0)[0]
     w = lib.age_grid.shape[0]
@@ -225,23 +228,29 @@ def show_sps(title, self, lib, lib_name):
             
     ################
     ax1 = plt.subplot(311)
-    plt.title(f'{title} SPS: {lib_name}', fontsize=20)
+    plt.title(f'{title} SPS: {lib_name}        chi2/DOF:{self.chi2:.3f}', fontsize=20)
     if self.goodpixels[0]>=2000: plt.axvspan(3020, 4000, facecolor = 'lightcoral', alpha=0.5, label='UV data not included in fit')
     self.plot(color=['black', 'limegreen', 'darkgreen', 'red'])
-    plt.axvspan(overlap_uv-80, overlap_uv+20, facecolor = 'cyan', alpha=0.5) # Overlap between UV and VIS data
-    plt.axvline(overlap_uv, color = 'aqua')
+    ax1.axvspan(overlap_uv-60, overlap_uv+20, facecolor = 'cyan', alpha=0.5) # Overlap between UV and VIS data
+    ax1.axvline(overlap_uv, color = 'aqua')
     ax1.minorticks_on()
     plt.ylim(0, 3.5e-15)
     
     ################
     ax2 = plt.subplot(312)
+    if see: 
+        plt.plot(see[0], see[1], color= 'deeppink')
+        plt.ylim(-0.2*1e-15, 3.5*1e-15)
     plt.axvspan(self.lam[0], self.lam[-1], facecolor = 'lightgrey', alpha=0.5, label='Data range') # data range
     if self.goodpixels[0]>=2000: plt.axvspan(3020, 4000, facecolor = 'darkgrey', label='UV data not included in fit')
-    plt.plot(self.lam_optimal_template, self.convolve_gauss_temps, label='SPS models convolved with \nLOSVD using Gauss-Hermite series', color='black', linewidth=1)
-    plt.plot(self.lam_optimal_template, self.optimal_template, label='Combined pPXF Model \n(Sum of Weighted Templates)', color='green', linewidth=1)
-    plt.xlim(1600,13000)
+    plt.axvspan(overlap_uv-60, overlap_uv+20, facecolor = 'cyan', alpha=0.5, label='UV/VIS overlap') # Overlap between UV and VIS data
+    plt.step(self.lam_optimal_template, self.optimal_template, color = 'green', linewidth=1, 
+            label='Sum of Weighted Templates') 
+    plt.step(self.lam_optimal_template, self.convolve_gauss_temps, color='black', linewidth=1, 
+             label='SPS models convolved with \nLOSVD using Gauss-Hermite series') 
+    plt.xlim(self.lam_optimal_template[0]-100, 15000)
     plt.xticks([])
-    plt.legend()
+    plt.legend(ncols=2, fontsize=8)
     
     if self.apoly is not None:
         # Create first inset plot (Apoly)
@@ -260,17 +269,19 @@ def show_sps(title, self, lib, lib_name):
     ################
     ax3 = plt.subplot(313) 
     plt.axvspan(self.lam[0], self.lam[-1], facecolor = 'lightgrey', alpha=0.5) # data range
+    plt.axvspan(overlap_uv-60, overlap_uv+20, facecolor = 'cyan', alpha=0.5) # Overlap between UV and VIS data
     if self.goodpixels[0]>=2000: plt.axvspan(3020, 4000, facecolor = 'darkgrey') # UV data not included in fit
     for i in range(len(idx)):
-        plt.plot(lib.lam_temp_full, lib.templates_reshape[:,idx[i]] + offset[i], color=cmap(idx[i]), linewidth=1.5, 
+        plt.step(lib.lam_temp_full, lib.templates_reshape[:,idx[i]] + offset[i], color=cmap(idx[i]), linewidth=1.5, 
                  label=f'Star: {idx[i]} [Age = {lib.age_grid[n[i], nn[i]]} Gyr, [M/H] = {lib.metal_grid[n[i], nn[i]]}]')
-        print(f'Stellar template: {idx[i]}; Weight = {self.weights[idx[i]]};  [Age = {lib.age_grid[n[i],nn[i]]} Gyr, [M/H] = {lib.metal_grid[n[i], nn[i]]}]')
+        print(f'SPS template: {idx[i]}; Weight = {self.weights[idx[i]]};  [Age = {lib.age_grid[n[i],nn[i]]} Gyr, [M/H] = {lib.metal_grid[n[i], nn[i]]}]')
     
     plt.xlabel(r"$\lambda_{\rm rest}$ ($Ångstrøm$)")
-    plt.xlim(1600,13000)
+    plt.xlim(self.lam_optimal_template[0]-100, 15000)
     ax3.minorticks_on()
-    plt.ylim(1,12)
-    plt.legend(fontsize=8)
+    plt.ylim(1,8)
+    plt.yticks([])
+    plt.legend(fontsize=12)
 
     ###########  [left, bottom, width, height]
     ax1.set_position([0.1, 0.6, 0.8, 0.33]) 
@@ -285,7 +296,7 @@ def show_sps(title, self, lib, lib_name):
 import numpy as np
 def save_as_ascii(date, self, lib, idx):
     # Open a file to write the output
-    with open(f"output/{date}_ppxf_bestfit_ascii.txt", "w") as f:
+    with open(save_path + f"{date}_ppxf_bestfit_ascii.txt", "w") as f:
         f.write("mask   obs_wl_AA    flux_cgs                err_cgs                 bestfit_model         \n")
         f.write("------ -----------  ----------------------  ----------------------  ----------------------\n")
         
@@ -293,7 +304,7 @@ def save_as_ascii(date, self, lib, idx):
         for ma, wl, flux, err, best in zip(mask_combined, self.lam, self.galaxy, self.noise, self.bestfit):
             f.write(f"{ma} {wl:12.2f}  {flux:22.16e}  {err:22.16e}  {best:22.16e}\n")
     
-    with open(f"output/{date}_ppxf_templates_ascii.txt", "w") as f:
+    with open(save_path + f"{date}_ppxf_templates_ascii.txt", "w") as f:
         # Generate the header dynamically based on the length of idx
         weights_str = 'Weights:\n'
         weights_str += "".join([f"SPS [{idx[i]}]: {self.weights[idx[i]]:22.16e}\n" for i in range(len(idx))]) + "\n"
@@ -309,18 +320,18 @@ def save_as_ascii(date, self, lib, idx):
             # Join SPS values dynamically based on the length of idx
             sps_values_str = "  ".join([f"{sps:22.16e}" for sps in sps_values])
             f.write(f"{wl:12.2f}  {optemp:22.16e}  {bestfull:22.16e} {lam:12.2f}  {sps_values_str}\n")
-    print(f"Saved at output/{date}_ppxf_templates_ascii.txt\n")
+    print(f"Saved as {date}_ppxf_templates_ascii.txt\n")
     
     
 ################################################################ 
-def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_range=[7000, 8700], AGNmask=True, plot=True, quiet=False, save=False):
+def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_range=[4000, 9000], metal_range=[-0.1, 0.3], age_range=[0.0,14.0], AGNmask=True, plot=True, quiet=False, save=False):
     """
     Performs two pPXF fits of the galaxy spectrum using stellar population synthesis (SPS) templates.
 
     Parameters:
     ----------
     date : str
-        The date or other identifyer as string.
+        The date or other identifier as string.
     llam : array-like
         The wavelength grid of the galaxy spectrum (in Angstroms).
     ggalaxy : array-like
@@ -331,8 +342,27 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
         The name of the stellar population synthesis (SPS) model to be used.
     R : float
         The resolving power of the instrument (e.g., Xshooter).
-    norm_range : list, optional, default=[7500, 8400]
-        The wavelength range used for normalization, defaulting to [7500, 8400] Å.
+        
+    norm_range : array_like with shape (2,), optional, default=[7000, 8700]
+        A two-elements vector specifying the wavelength range in Angstroms 
+        within which to compute the templates normalization
+        (e.g. ``norm_range=[5070, 5950]`` for the FWHM of the V-band). In this
+        case, the output weights will represent light weights.
+
+        If ``norm_range=None`` (default), the templates are not normalized
+        individually, but instead are all normalized by the same scalar, given
+        by the median of all templates. In this case, the output weights will
+        represent mass weights.
+        
+    metal_range : array_like with shape (2,), optional, default=[-0-1, 0.3]
+        ``[metal_min, metal_max]`` optional metallicity [M/H] range (inclusive) 
+        for the SPS models (e.g.`` metal_range = [0, np.inf]`` to select only
+        the spectra with Solar metallicity and above).
+        
+    age_range : array_like with shape (2,), optional, defalt=[0, 14]
+        ``[age_min, age_max]`` optional age range (inclusive) in Gyr for the 
+        SPS models. This can be useful e.g. to limit the age of the templates 
+        to be younger than the age of the Universe at a given redshift.
         
     Output Parameters:
     -------
@@ -353,8 +383,11 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
       
     """
     lam_range = [min(llam), max(llam)] 
-    if not quiet: print('\n' + '#'*24 + '      ' + sps_name +' SPS templates ['+ f'{min(llam):.0f},{max(llam):.0f}' +'] Å') 
-    
+    if not quiet: print('#'*32 + '            ' + sps_name +' SPS templates\n' +
+    f'lam_range                                   =  [{min(llam):.0f}, {max(llam):.0f}]    Å\n' 
+    f'metal_range                                 =  {metal_range} (M/H)\n'
+    f'age_range                                   =  {age_range}   Gyr\n')
+        
     ################ Logarithmically rebin the spectrum and error to a 
     # velocity scale per spectral pixel equal to the instrumental dispersion 
     # of Xshooter. This ensures Nyquist sampling without loss of information.
@@ -378,7 +411,7 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
         request.urlretrieve(url, filename)
     #FWHM_temp = 2.51   # Resolution of E-MILES templates in the fitted range
 
-    libs = lib.sps_lib(filename, velscale, norm_range= norm_range)
+    libs = lib.sps_lib(filename, velscale, norm_range = norm_range, metal_range = metal_range, age_range = age_range)
     sps = libs
     lam_range_temp = np.exp(libs.ln_lam_temp[[0, -1]])
 
@@ -386,10 +419,10 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     mask_Narrow  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=700, custom_lines= em__wavelengths)                # Emission lines marked from plot_Mrk_590_Xshooter
     mask_Balmer  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=1100, custom_lines= balmer_wave)                   # Balmer emission lines
     mask_Broad   = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=9200, custom_lines=[6548.03, 6583.41, 6562.80])    # [NII]_d & Halpha
-    mask_Bbroad  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=6000, custom_lines=[4861.33,  4958.911, 5006.84])  # Hbeta & [OIII]
-    mask_Bbbroad = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=3000, custom_lines=[4340.471, 4363.21, 7319.99])   # Hγ & [O III] & [O II]
-    mask_Noise   = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=2000, custom_lines=[7440])                         # Noise near Ca_II trip
-    mask_overlap = ~((np.exp(ln_lam) >= (overlap_uv-80)) & (np.exp(ln_lam) <= (overlap_uv+20)))              # Overlap between UV and VIS data see Table 11, XSHOOTER User Manual v. 8 Released On: 2021-06-18
+    mask_Bbroad  = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=5000, custom_lines=[4861.33,  4958.911, 5006.84])  # Hbeta & [OIII]
+    mask_Bbbroad = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=2400, custom_lines=[4340.471, 4363.21])            # Hγ & [O III]
+    mask_Noise   = util.determine_mask(ln_lam, lam_range_temp, redshift=0, width=1800, custom_lines=[7440])                         # Noise near Ca_II trip
+    mask_overlap = ~((np.exp(ln_lam) >= (overlap_uv-60)) & (np.exp(ln_lam) <= (overlap_uv+20)))              # Overlap between UV and VIS data see Table 11, XSHOOTER User Manual v. 8 Released On: 2021-06-18
     ################
     if AGNmask: 
         mask_agn = ~(np.exp(ln_lam) <= 4000) 
@@ -404,7 +437,7 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
     if plot: 
         plt.title(f"pPXF fit with {sps_name} SPS templates") 
         if AGNmask: plt.axvspan(3000, 4000, facecolor = 'lightcoral', alpha=0.5, label='UV data not included in fit') # Overlap between UV and VIS data
-        plt.axvspan(overlap_uv-80, overlap_uv+20, facecolor = 'cyan', alpha=0.5) # Overlap between UV and VIS data
+        plt.axvspan(overlap_uv-60, overlap_uv+20, facecolor = 'cyan', alpha=0.5) # Overlap between UV and VIS data
         plt.axvline(overlap_uv, color = 'aqua') 
     
         #plt.ylim(-0.4, 1.5)
@@ -422,22 +455,29 @@ def runppxf(date, llam, ggalaxy, nnoise, degree, mdegree, sps_name, R, norm_rang
         packing = {'ppxf_fit': pp, 'sps_lib': sps}
 
         # Save multiple class instances as dictionary using pickle
-        with open(f'output/{date}_ppxffit.pkl', 'wb') as f:
+        with open(save_path + f'{date}_age_metal_restrict_ppxffit.pkl', 'wb') as f:
             pickle.dump(packing, f)
 
     return pp, sps_name, sps, velscale, mask_combined
     
 ################################################################
 
-
-print('#'*64 + '\n' + '#'*32 + f'                      27/01/2022\n' +'#'*64)
+print('#'*64 + '\n' + f'                                                      27/01/2022\n' +'#'*64)
+plt.figure(figsize=(14,10))
 pp, sps_name, sps, velscale, mask_combined = runppxf('27_01_2022', lam[~nir], spec[~nir], err[~nir], degree=-1, mdegree=-1, sps_name = 'emiles', R=R[1], AGNmask=True, plot=False, save=True)
 idx, n, nn = show_sps('27 Jan. X-shooter Mrk590', pp, sps, sps_name)
-plt.savefig(f'output/27_01_22_Mrk590_Xshooter_ppxf.pdf', format='pdf')
-save_as_ascii('27_01_2022', pp, sps, idx)
+plt.savefig(save_path + f'27_01_22_age_metal_restrict_Mrk590_Xshooter_ppxf.pdf', format='pdf')
+save_as_ascii('27_01_2022_age_metal_restrict', pp, sps, idx)
 
-print('#'*64 + '\n' + '#'*32 + f'                      08/01/2022\n' +'#'*64)
+print('#'*64 + '\n' + f'                                                      08/01/2022\n' +'#'*64)
 pp8, sps_name8, sps8, velscale8, mask_combined8 = runppxf('08_01_2022', lam8[~nir], spec8[~nir], err8[~nir], degree=-1, mdegree=-1, sps_name = 'emiles', R=R[1], AGNmask=True, plot=False, save=True)
 idx8, n8, nn8 = show_sps('08 Jan. X-shooter Mrk590', pp8, sps8, sps_name8)
-plt.savefig(f'output/08_01_22_Mrk590_Xshooter_ppxf.pdf', format='pdf')
-save_as_ascii('08_01_2022', pp8, sps8, idx8)
+plt.savefig(save_path + f'08_01_22_age_metal_restrict_Mrk590_Xshooter_ppxf.pdf', format='pdf')
+save_as_ascii('08_01_2022_age_metal_restrict', pp8, sps8, idx8)
+
+
+'''
+fsps_lim = lam >= 7400 
+fpp, fsps_name, fsps, fvelscale, fmask_combined = runppxf('27_01_2022_TEST', lam[~fsps_lim], spec[~fsps_lim], err[~fsps_lim], degree=-1, mdegree=-1, sps_name = 'fsps', R=R[1], norm_range=[1000, 7000],  AGNmask=True, plot=False, save=False)
+idx, n, nn = show_sps('27 Jan. X-shooter Mrk590_TEST', pp, sps, sps_name, see=[lam, spec])
+'''

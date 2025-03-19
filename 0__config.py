@@ -19,15 +19,10 @@ font_sizes = {
     'legend.fontsize': 12,
     'legend.title_fontsize': 18,
 }
-import matplotlib.pyplot as plt
 
 plt.rcParams.update(font_sizes)
 plt.rc('image', cmap='cubehelix')
 plt.rcParams['lines.linewidth'] = 2
-
-from matplotlib.colors import LinearSegmentedColormap
-Figtree = LinearSegmentedColormap.from_list("Figtree",  ['#904c77', '#e49ab0', '#331F1F', '#c3d350', '#809848', '#2E4D2D']*4)
-Minty = LinearSegmentedColormap.from_list("Minty", ["#22577a","#38a3a5","#57cc99","#80ed99","#c7f9cc"]*5)
 
 print('### Setup initialized ###')
 
@@ -36,19 +31,23 @@ try:
     import plotbin
 except ImportError:
     import subprocess, sys
-    for package in ["ppxf", "spectral_cube", "vorbin", "plotbin", "mpdaf", "tqdm", "astroML", "photutils", "pafit", 'reproject']:
+    for package in [ "ppxf", "plotbin", "spectral_cube", "astroML"]:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     print('### Setup complete ###')
 
-'''               
-"pyarrow", "typhon", "marvin", "photutils", "pafit", "lime-stable", "http.client", "pillow", "imageio"
+'''   
+
+# Only install packages if plotbin is missing
+try:
+    import plotbin
+except ImportError:
+    import subprocess, sys
+    for package in ["ppxf", "spectral_cube", "vorbin", "plotbin",
 import astropy
 import numpy as np
 import matplotlib
 import ppxf
-import vorbin
-import plotbin
 
 # Check versions
 print("Astropy version:", astropy.__version__)
